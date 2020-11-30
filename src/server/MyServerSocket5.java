@@ -7,7 +7,10 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Vector;
 
+import com.google.gson.Gson;
+
 import protocol.Chat;
+import protocol.RequestDto;
 
 public class MyServerSocket5 {
 
@@ -59,21 +62,22 @@ public class MyServerSocket5 {
 				
 				String input = null;
 				while ((input = reader.readLine()) != null) {
+					Gson gson = new Gson();
+					RequestDto dto = gson.fromJson(input, RequestDto.class);
 					// Routing (라우팅 하기)
-					routing(input);
+					routing(dto);
 					
 				}
 			} catch (Exception e) {	
 				e.printStackTrace();
 			}
 		}
-		private void routing(String input) {
-			String gubun[] = input.split(":");
+		private void routing(RequestDto dto) {
 			
 			if(id == null) {
-				if(gubun[0].equals(Chat.ID)) {
+				if(dto.getGubun().equals("ID")) {
 					// 변수에 ID 저장
-					id = gubun[1];
+					id = dto.getId();
 					writer.println("당신의 아이디는 "+id+"입니다.");
 					writer.flush();
 				}else {
@@ -83,20 +87,18 @@ public class MyServerSocket5 {
 				}
 			}
 
-
-			
-			
-			if(gubun[0].equals(Chat.ALL)) { // 전체채팅 ALL:안녕
+	
+			if(dto.getGubun().equals(Chat.ALL)) { // 전체채팅 ALL:안녕
 				for (int i = 0; i < vc.size(); i++) {
 					if (vc.get(i) != this) {
-						vc.get(i).writer.println(id+"-->"+gubun[1]);
+						vc.get(i).writer.println(id+"-->"+dto.getMsg());
 						vc.get(i).writer.flush();
 					}
 					
 				}
-			} else if(id!=null && gubun[0].equals(Chat.MSG)) {	// MSG:ssar1:안녕
-				String tempId = gubun[1];
-				String tempMsg = gubun[2];
+			} else if(id!=null && dto.getGubun().equals(Chat.MSG)) {	// MSG:ssar1:안녕
+				String tempId = dto.getId();
+				String tempMsg = dto.getMsg();
 				
 				for (int i = 0; i < vc.size(); i++) {
 					if (vc.get(i).id != null && vc.get(i).id.equals(tempId)) {
